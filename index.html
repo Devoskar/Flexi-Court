@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flexicourt.pl - Rozszerzony Raport Strategiczny 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Slate & Emerald with Amber & Indigo accents (Consulting Style) -->
+    <!-- Application Structure Plan: Aplikacja rozszerzona do 5 zakładek. Zawiera analizy makroekonomiczne, badanie konkurencji, strategię B2B/B2C, rekomendacje dot. automatyzacji (n8n) oraz aktywne narzędzia AI (LLM) do generowania maili, postów i notatek. -->
+    <!-- Visualization & Content Choices: 1. Wykres Pierścieniowy -> Udział w rynku. 2. Wykres Radarowy -> Benchmarking. 3. Wykres Słupkowy -> Prognozy. 4. Elementy interaktywne na bazie Vanilla JS. Integracja z modelem Gemini. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        /* Ukrywanie paska przewijania dla nawigacji mobilnej */
+        nav::-webkit-scrollbar { display: none; }
+        nav { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .tab-btn.active {
+            border-bottom-width: 4px;
+            border-color: #059669;
+            color: #059669;
+            font-weight: 700;
+        }
+        .fade-in {
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+        /* Custom CSS Timeline without SVG */
+        .timeline-container {
+            border-left: 4px solid #10b981;
+            padding-left: 20px;
+            margin-left: 10px;
+            position: relative;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: -26px;
+            top: 4px;
+            width: 16px;
+            height: 16px;
+            background-color: #10b981;
+            border: 4px solid #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 0 2px #10b981;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <header class="gradient-bg text-white shadow-md z-10 sticky top-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <div class="flex items-center space-x-4">
+                    <!-- Logo Flexicourt -->
+                    <img src="https://flexicourt.pl/wp-content/uploads/2023/11/logo_mail-removebg-preview-2.png" alt="Flexicourt.pl" class="h-8 sm:h-10 object-contain">
+                    <div class="pl-4 border-l border-slate-600 hidden sm:block">
+                        <p class="text-xs text-slate-300 uppercase tracking-widest">Raport & Rekomendacje 2026</p>
+                    </div>
+                </div>
+                <!-- Przycisk Ustawień API -->
+                <button onclick="openApiModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg transition-colors border border-slate-600 flex items-center gap-2 shadow-sm">
+                    <span>🔑</span> <span class="hidden sm:inline">Klucz API</span>
+                </button>
+            </div>
+            <nav class="flex space-x-6 mt-2 overflow-x-auto" aria-label="Tabs">
+                <button onclick="switchTab('rynek')" id="btn-rynek" class="tab-btn active text-slate-300 hover:text-white px-1 py-4 text-sm font-medium whitespace-nowrap transition-colors">
+                    📈 Sytuacja na Rynku
+                </button>
+                <button onclick="switchTab('konkurencja')" id="btn-konkurencja" class="tab-btn text-slate-300 hover:text-white px-1 py-4 text-sm font-medium whitespace-nowrap transition-colors">
+                    ⚔️ Analiza Konkurencji
+                </button>
+                <button onclick="switchTab('przewagi')" id="btn-przewagi" class="tab-btn text-slate-300 hover:text-white px-1 py-4 text-sm font-medium whitespace-nowrap transition-colors">
+                    🛡️ Nasze Przewagi
+                </button>
+                <button onclick="switchTab('strategia')" id="btn-strategia" class="tab-btn text-slate-300 hover:text-white px-1 py-4 text-sm font-medium whitespace-nowrap transition-colors">
+                    🎯 Strategia Sprzedażowa
+                </button>
+                <button onclick="switchTab('rekomendacje')" id="btn-rekomendacje" class="tab-btn text-slate-300 hover:text-white px-1 py-4 text-sm font-medium whitespace-nowrap transition-colors">
+                    📋 Plan Działania & KPI
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- ZAKŁADKA 1: RYNEK -->
+        <section id="tab-rynek" class="fade-in block">
+            <div class="mb-8 border-b border-slate-200 pb-4">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Makrootoczenie i Rynek Nawierzchni 2026</h2>
+                <p class="text-slate-600 text-lg">Polska infrastruktura sportowa wchodzi w fazę masowych renowacji. Orliki budowane w latach 2008-2012 ulegają degradacji, otwierając gigantyczny rynek dla szybkich systemów polipropylenowych (PP).</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 card-hover">
+                    <h3 class="text-xl font-semibold mb-4 text-slate-700">Szacowany Udział i Potencjał (Polska)</h3>
+                    <div class="chart-container">
+                        <canvas id="marketChart"></canvas>
+                    </div>
+                    <div class="mt-4 p-3 bg-emerald-50 rounded text-sm text-emerald-800 border border-emerald-100">
+                        <strong>Wniosek rynkowy:</strong> Flexicourt ma doskonałą pozycję, by przejąć udziały od drogich "Marek Premium" oraz edukować rynek, by unikał "Taniego Importu". Miejsce na stabilny wzrost wynosi min. 15-20% r/r.
+                    </div>
+                </div>
+                
+                <div class="flex flex-col space-y-4 justify-center">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Kluczowe Katalizatory Wzrostu (Wnioski)</h3>
+                    
+                    <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500 card-hover">
+                        <h4 class="font-bold text-slate-800 flex items-center gap-2"><span>🏛️</span> Dotacje Rządowe i Samorządowe</h4>
+                        <p class="text-slate-600 text-sm mt-1">Programy takie jak "Sportowa Polska" wymuszają modernizacje. Nawierzchnie PP są idealne do rewitalizacji starych betonowych/asfaltowych boisk bez kosztownych prac ziemnych. <strong>Zalecenie:</strong> Monitorować nabory i uderzać z ofertą bezpośrednio do wójtów na 3 miesiące przed rozstrzygnięciem budżetów.</p>
+                    </div>
+                    
+                    <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-amber-500 card-hover">
+                        <h4 class="font-bold text-slate-800 flex items-center gap-2"><span>🏡</span> Boom na "Backyard Courts" (B2C)</h4>
+                        <p class="text-slate-600 text-sm mt-1">Po pandemii kultura spędzania czasu w domu i ogrodzie trwale wzrosła. Rodziny inwestują w wielofunkcyjne strefy. <strong>Zalecenie:</strong> Sprzedawać "marzenie o NBA w ogródku", a nie tylko "plastikowe kwadraty". Potrzebne są gotowe wizualizacje lifestyle'owe na stronie.</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-emerald-500 card-hover">
+                        <h4 class="font-bold text-slate-800 flex items-center gap-2"><span>🌱</span> Presja ESG (Ekologia i Recykling)</h4>
+                        <p class="text-slate-600 text-sm mt-1">Poliuretan jest wysoce toksyczny przy utylizacji. Polipropylen (PP) z którego robi się moduły jest w 100% recyklingowalny. <strong>Zalecenie:</strong> Używać "Zielonego Certyfikatu" w materiałach przetargowych B2B jako twardej przewagi nad starymi technologiami.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ZAKŁADKA 2: KONKURENCJA -->
+        <section id="tab-konkurencja" class="fade-in hidden">
+            <div class="mb-8 border-b border-slate-200 pb-4">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Benchmarking i Taktyki Neutralizacji Konkurencji</h2>
+                <p class="text-slate-600 text-lg">Aby wygrywać przetargi i zlecenia B2C, Flexicourt musi dokładnie wiedzieć, jak punktować słabości rywali i komunikować własną wartość (Value Proposition).</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 mb-8 card-hover">
+                <h3 class="text-xl font-semibold mb-2 text-slate-700 text-center">Profil Wielokryterialny na tle Rynku</h3>
+                <div class="chart-container" style="height: 400px;">
+                    <canvas id="radarChart"></canvas>
+                </div>
+            </div>
+
+            <h3 class="text-2xl font-bold text-slate-800 mb-4">Rekomendowane Taktyki Zwalczania:</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Competitor 1 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-indigo-500 flex flex-col h-full card-hover">
+                    <h4 class="text-xl font-bold text-slate-800">Marki Globalne / Premium</h4>
+                    <p class="text-xs text-slate-500 uppercase tracking-wide mb-3">Np. Sport Court, Bergo</p>
+                    <ul class="text-sm space-y-2 text-slate-600 flex-grow">
+                        <li><span class="text-red-500 font-bold">Wada:</span> Kosmiczna cena, czas dostawy.</li>
+                        <li><span class="text-emerald-500 font-bold">Zaleta:</span> Potężny marketing, atesty.</li>
+                    </ul>
+                    <div class="mt-4 p-3 bg-indigo-50 rounded border border-indigo-100">
+                        <strong class="text-indigo-800 block mb-1">Taktyka Flexicourt:</strong>
+                        <p class="text-xs text-indigo-900">Atakuj szybkością i lokalnością. Hasło: <i>"Jakość światowa, magazyn w Polsce. Po co przepłacać 40% za logo na przesyłce ze Stanów/Szwecji? Masz to u nas w 48h z polską gwarancją."</i></p>
+                    </div>
+                </div>
+                
+                <!-- Competitor 2 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-red-500 flex flex-col h-full card-hover">
+                    <h4 class="text-xl font-bold text-slate-800">Tani Import "No-name"</h4>
+                    <p class="text-xs text-slate-500 uppercase tracking-wide mb-3">Importerzy z Allegro, Alibaba</p>
+                    <ul class="text-sm space-y-2 text-slate-600 flex-grow">
+                        <li><span class="text-red-500 font-bold">Wada:</span> Pękanie na mrozie, brak UV.</li>
+                        <li><span class="text-emerald-500 font-bold">Zaleta:</span> Kusząca, najniższa cena.</li>
+                    </ul>
+                    <div class="mt-4 p-3 bg-red-50 rounded border border-red-100">
+                        <strong class="text-red-800 block mb-1">Taktyka Flexicourt:</strong>
+                        <p class="text-xs text-red-900">Edukacja o TCO (Całkowity Koszt Posiadania). Hasło: <i>"Tanie boiska kupuje się dwa razy. Nasze moduły mają dodatki UV i wzmocnione zamki. Poproś konkurencję o próbkę i wygnij ją w rękach - my nie boimy się tego testu."</i></p>
+                    </div>
+                </div>
+
+                <!-- Competitor 3 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-amber-500 flex flex-col h-full card-hover">
+                    <h4 class="text-xl font-bold text-slate-800">Poliuretan (Wylewki)</h4>
+                    <p class="text-xs text-slate-500 uppercase tracking-wide mb-3">Tradycyjne firmy budowlane</p>
+                    <ul class="text-sm space-y-2 text-slate-600 flex-grow">
+                        <li><span class="text-red-500 font-bold">Wada:</span> Koszt podbudowy, łatanie dziur, kałuże.</li>
+                        <li><span class="text-emerald-500 font-bold">Zaleta:</span> Urzędnicze przyzwyczajenie.</li>
+                    </ul>
+                    <div class="mt-4 p-3 bg-amber-50 rounded border border-amber-100">
+                        <strong class="text-amber-800 block mb-1">Taktyka Flexicourt:</strong>
+                        <p class="text-xs text-amber-900">Pokazuj koszty napraw. Hasło: <i>"Gdy poliuretan pęka, musisz wzywać ekipę. Gdy pęknie moduł, wymieniasz go sam w 30 sekund. Dodatkowo - woda od razu przelatuje, gramy natychmiast po deszczu."</i></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Integration: Objection Handler -->
+            <div class="mt-10 bg-gradient-to-r from-slate-100 to-indigo-50 p-6 rounded-xl border border-indigo-200 shadow-inner">
+                <h3 class="text-xl font-bold text-indigo-900 mb-3 flex items-center gap-2">🤖 AI Asystent: Trener Odpierania Obiekcji</h3>
+                <p class="text-sm text-slate-600 mb-4">Wpisz trudną obiekcję klienta (np. dotyczącą ceny lub konkurencji), a nasza Sztuczna Inteligencja wygeneruje idealną odpowiedź sprzedażową opartą na strategii Flexicourt.</p>
+                <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                    <input type="text" id="objection-input" placeholder="Np. Chińskie płytki na Allegro są tańsze..." class="flex-grow p-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <button onclick="handleObjection()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors whitespace-nowrap shadow-md">✨ Zbij Obiekcję</button>
+                </div>
+                <div id="objection-output" class="hidden bg-white p-5 rounded-lg border border-indigo-200 text-slate-700 text-sm whitespace-pre-wrap min-h-[80px] leading-relaxed shadow-sm"></div>
+            </div>
+        </section>
+
+        <!-- ZAKŁADKA 3: PRZEWAGI -->
+        <section id="tab-przewagi" class="fade-in hidden">
+            <div class="mb-8 border-b border-slate-200 pb-4">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Budowa Przewagi Konkurencyjnej (USP)</h2>
+                <p class="text-slate-600 text-lg">Zamiast konkurować tylko produktem, Flexicourt musi rywalizować <b>Doświadczeniem Klienta (CX)</b> oraz <b>Barierami Wejścia</b>, które utrudnią działanie tanim importerom.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-4">Rdzeń Wartości (Komunikować wszędzie):</h3>
+                    <div class="space-y-4">
+                        <div class="bg-emerald-600 text-white p-5 rounded-xl shadow-sm flex items-start gap-4">
+                            <div class="text-3xl">📦</div>
+                            <div>
+                                <h4 class="font-bold text-lg">Magazyn i Stock w Polsce</h4>
+                                <p class="text-emerald-100 text-sm">Gwarancja dostępności "od ręki" i błyskawicznej wymiany reklamacyjnej. To zabija argumenty firm importujących pod zamówienie (lead time 6-8 tygodni).</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-800 text-white p-5 rounded-xl shadow-sm flex items-start gap-4">
+                            <div class="text-3xl">🛠️</div>
+                            <div>
+                                <h4 class="font-bold text-lg">System "Zrób to Sam" (DIY)</h4>
+                                <p class="text-slate-300 text-sm">Boisko to klocki LEGO dla dorosłych. Tworzymy poczucie sprawczości. Klient oszczędza na ekipie montażowej, a zyskuje świetną zabawę z rodziną przy układaniu.</p>
+                            </div>
+                        </div>
+                        <div class="bg-blue-600 text-white p-5 rounded-xl shadow-sm flex items-start gap-4">
+                            <div class="text-3xl">🛡️</div>
+                            <div>
+                                <h4 class="font-bold text-lg">10-15 Lat Gwarancji Prawdziwej</h4>
+                                <p class="text-blue-100 text-sm">Wielu sprzedawców na Allegro za 2 lata zamknie działalność. Flexicourt to stabilna marka z własnym serwisem. Budujemy zaufanie na lata.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl border-2 border-dashed border-slate-300">
+                    <h3 class="text-xl font-bold text-slate-800 mb-4 text-center">Rekomendacje Wdrożeniowe (Innowacje CX):</h3>
+                    <ul class="space-y-6">
+                        <li class="relative">
+                            <div class="font-bold text-emerald-600 flex items-center gap-2"><span class="bg-emerald-100 p-1 rounded">1</span> Program "Try Before You Buy" (Sampling)</div>
+                            <p class="text-sm text-slate-600 mt-1 pl-8">Zamiast wysyłać PDFy, zróbcie "Sample Box". Pudełko z 4 złączonymi płytkami Flexicourt i krótką ulotką. Wysyłka kurierem za darmo (lub za koszt przesyłki) do dyrektora szkoły / klienta B2C. Kiedy wezmą plastik do ręki, poczują jakość zamków i materiału – wygraliście z chińszczyzną.</p>
+                        </li>
+                        <li class="relative">
+                            <div class="font-bold text-amber-600 flex items-center gap-2"><span class="bg-amber-100 p-1 rounded">2</span> Konfigurator 3D on-line (Wizualizator)</div>
+                            <p class="text-sm text-slate-600 mt-1 pl-8">Klient B2C jest wzrokowcem. Na stronie Flexicourt.pl musi znaleźć się proste narzędzie webowe: "Wpisz wymiary ogródka -> Wybierz sport -> Pokoloruj linie -> Zobacz render i wycenę". To potężne narzędzie generujące leady (wymaga zostawienia maila do zapisu projektu).</p>
+                        </li>
+                        <li class="relative">
+                            <div class="font-bold text-blue-600 flex items-center gap-2"><span class="bg-blue-100 p-1 rounded">3</span> Edukacja B2B: "Jak napisać przetarg"</div>
+                            <p class="text-sm text-slate-600 mt-1 pl-8">Wójtowie często nie wiedzą jak legalnie opisać nawierzchnię PP w przetargu publicznym. Przygotujcie gotowe, zgodne z prawem paczki SIWZ/OPZ do pobrania z Waszej strony, które naturalnie promują specyfikację płytek Flexicourt.</p>
+                        </li>
+                        <li class="relative">
+                            <div class="font-bold text-purple-600 flex items-center gap-2"><span class="bg-purple-100 p-1 rounded">4</span> Automatyzacja AI & n8n (Skalowanie bez kosztów)</div>
+                            <p class="text-sm text-slate-600 mt-1 pl-8">Wykorzystaj <b>n8n</b> do pełnej automatyzacji procesu "Sample Boxów": klient wypełnia formularz -> n8n automatycznie tworzy list przewozowy (np. InPost), wrzuca zadanie do magazynu na Slacku/Trello, aktualizuje CRM i odpala sekwencję e-mail z instrukcją "na co zwrócić uwagę testując płytki". Dodatkowo, wdróż <b>AI Chatbota</b> (wytrenowanego na bazie wiedzy o PP), który zdejmie z handlowców 80% powtarzalnych pytań 24/7 (np. "czy to pęknie zimą?", "jakie ma odprowadzanie wody?").</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- AI Integration: Meeting Summarizer -->
+            <div class="mt-8 bg-gradient-to-r from-emerald-50 to-teal-50 p-6 rounded-xl border border-emerald-200 shadow-inner">
+                <h3 class="text-xl font-bold text-emerald-900 mb-3 flex items-center gap-2">📝 AI Asystent: Inteligentne Notatki ze Spotkania</h3>
+                <p class="text-sm text-slate-600 mb-4">Wrzuć tutaj luźne notatki z rozmowy z klientem (nawet z błędami), a AI zamieni je w uporządkowane podsumowanie, wypunktuje korzyści (nasze USP) i przygotuje draft maila z podziękowaniem za spotkanie (Follow-up).</p>
+                <div class="flex flex-col gap-3 mb-4">
+                    <textarea id="meeting-notes" rows="3" placeholder="Np. Klient Jan Kowalski, chce boisko do kosza 5x5, boi sie ze bedzie slisko po deszczu. Ma dwojke nastoletnich dzieci. Zalezy mu na czasie bo w maju robia grilla rodzinnego." class="w-full p-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                </div>
+                <button onclick="summarizeMeeting()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-lg transition-colors shadow-md">✨ Wygeneruj Podsumowanie i E-mail</button>
+                <div id="meeting-output" class="hidden mt-4 bg-white p-5 rounded-lg border border-emerald-200 text-slate-700 text-sm whitespace-pre-wrap min-h-[120px] leading-relaxed shadow-sm"></div>
+            </div>
+        </section>
+
+        <!-- ZAKŁADKA 4: STRATEGIA -->
+        <section id="tab-strategia" class="fade-in hidden">
+            <div class="mb-8 border-b border-slate-200 pb-4">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Przeprojektowanie Lejków Sprzedażowych</h2>
+                <p class="text-slate-600 text-lg">Prognozy wzrostu wymagają odrębnego podejścia i oddzielnych "lejków" marketingowych dla klienta detalicznego (emocje) i instytucjonalnego (twarde dane).</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 card-hover">
+                    <h3 class="text-xl font-semibold mb-4 text-slate-700">Wizualizacja Rozwoju (Klienci vs Instytucje)</h3>
+                    <div class="chart-container">
+                        <canvas id="strategyChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="space-y-6">
+                    <!-- Funnel B2C -->
+                    <div class="bg-slate-50 border border-slate-200 p-5 rounded-xl">
+                        <h4 class="font-bold text-lg mb-3 text-emerald-600 border-b border-slate-200 pb-2">🎯 Model B2C (Backyard / Detal)</h4>
+                        <ul class="text-sm space-y-3 text-slate-700">
+                            <li><span class="font-bold text-slate-900">Zasada:</span> Sprzedajesz marzenie o czasie z dziećmi, a nie plastik.</li>
+                            <li><span class="font-bold text-slate-900">Top of Funnel (Pozyskanie):</span> Reklamy na Facebook/Instagram pokazujące ojca z synem grających na pięknym, przydomowym boisku 3x3.</li>
+                            <li><span class="font-bold text-slate-900">Mid of Funnel (Edukacja n8n):</span> Gdy lead wpada z reklamy, <b>n8n natychmiast przechwytuje dane</b>, w ciągu 2 minut wysyła spersonalizowanego maila z katalogiem i SMSa ("Cześć, tu Flexicourt! Twój katalog jest na mailu..."). Użytkownik nie stygnie w oczekiwaniu na handlowca.</li>
+                            <li><span class="font-bold text-slate-900">Zalecenie technologiczne (AI):</span> Zintegruj narzędzia wizyjne AI, aby klient w konfiguratorze mógł wgrać zdjęcie swojego podwórka i wygenerować realistyczny obraz "po montażu" boiska Flexicourt. Twórz gotowe pakiety cenowe z ratami 0%.</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Funnel B2B -->
+                    <div class="bg-slate-50 border border-slate-200 p-5 rounded-xl">
+                        <h4 class="font-bold text-lg mb-3 text-amber-600 border-b border-slate-200 pb-2">🏢 Model B2B (Gminy, Szkoły, Hotele)</h4>
+                        <ul class="text-sm space-y-3 text-slate-700">
+                            <li><span class="font-bold text-slate-900">Zasada:</span> Sprzedajesz brak problemów, trwałość i oszczędności z budżetu.</li>
+                            <li><span class="font-bold text-slate-900">Top of Funnel (AI Scouting & n8n):</span> Najłatwiejsza wygrana technologiczna: <b>zbuduj workflow w n8n wspierany przez AI</b>, który codziennie skanuje portale przetargowe (e-Zamówienia, BIP, Baza Konkurencyjności) pod kątem słów "rewitalizacja boiska", "modernizacja orlika", analizuje treść zamówienia (czytaj: czy da się wcisnąć polipropylen) i rano wysyła wyselekcjonowaną listę ciepłych leadów prosto na Slacka zespołu handlowego.</li>
+                            <li><span class="font-bold text-slate-900">Mid of Funnel (Cold Outreach):</span> Wykorzystanie AI do hiperpersonalizacji wiadomości e-mail do decydentów. Model czyta ostatnie wypowiedzi wójta w lokalnej prasie i wplata je w ofertę budowy ekologicznego boiska.</li>
+                            <li><span class="font-bold text-slate-900">Zalecenie taktyczne:</span> Hotele i ośrodki wczasowe to ukryta żyła złota. Potrzebują odświeżyć korty tenisowe przed sezonem przy minimalnym przestoju obiektu (nawierzchnia modułowa robi to w 2 dni).</li>
+                        </ul>
+                    </div>
+
+                    <!-- AI Integration: Email Generator -->
+                    <div class="bg-gradient-to-r from-slate-100 to-amber-50 p-6 rounded-xl border border-amber-200 shadow-inner mt-4">
+                        <h3 class="text-xl font-bold text-amber-900 mb-3 flex items-center gap-2">✉️ AI Generator: Cold Email B2B</h3>
+                        <p class="text-sm text-slate-600 mb-4">Stwórz spersonalizowaną wiadomość do dyrektora lub wójta. AI napisze angażującego maila promującego rewitalizację orlika w oparciu o ból klienta.</p>
+                        <div class="flex flex-col gap-3 mb-4">
+                            <input type="text" id="target-role" placeholder="Stanowisko (np. Wójt Gminy, Dyrektor Szkoły)" class="w-full p-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500" value="Dyrektor Szkoły Podstawowej">
+                            <input type="text" id="target-pain" placeholder="Główny problem (np. popękany asfalt, brak budżetu na wylewkę)" class="w-full p-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500" value="stary poliuretan na orliku tworzy niebezpieczne kałuże">
+                        </div>
+                        <button onclick="generateEmail()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-md">✨ Generuj E-mail</button>
+                        <div id="email-output" class="hidden mt-4 bg-white p-5 rounded-lg border border-amber-200 text-slate-700 text-sm whitespace-pre-wrap min-h-[120px] leading-relaxed shadow-sm"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Integration: Social Media Generator -->
+            <div class="mt-8 bg-gradient-to-r from-blue-50 to-cyan-50 p-6 rounded-xl border border-blue-200 shadow-inner">
+                <h3 class="text-xl font-bold text-blue-900 mb-3 flex items-center gap-2">📱 AI Creator: Generator Postów Social Media (B2C)</h3>
+                <p class="text-sm text-slate-600 mb-4">Twórz błyskawicznie angażujące posty reklamowe, by przyciągnąć klientów indywidualnych. Wpisz do kogo celujesz i co oferujesz, a sztuczna inteligencja wygeneruje gotowy tekst z ikonami i hashtagami.</p>
+                <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                    <input type="text" id="social-audience" placeholder="Grupa docelowa (np. rodzice nastolatków)" class="flex-grow p-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="social-benefit" placeholder="Główny atut (np. bezpieczny dla stawów, montaż w 1 dzień)" class="flex-grow p-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button onclick="generateSocialPost()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors whitespace-nowrap shadow-md">✨ Stwórz Post</button>
+                </div>
+                <div id="social-output" class="hidden bg-white p-5 rounded-lg border border-blue-200 text-slate-700 text-sm whitespace-pre-wrap min-h-[100px] leading-relaxed shadow-sm"></div>
+            </div>
+        </section>
+
+        <!-- ZAKŁADKA 5: REKOMENDACJE & KPI -->
+        <section id="tab-rekomendacje" class="fade-in hidden">
+            <div class="mb-8 border-b border-slate-200 pb-4">
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Plan Działania i Kluczowe Wskaźniki (KPI)</h2>
+                <p class="text-slate-600 text-lg">Syntetyczne podsumowanie działań, które zarząd Flexicourt powinien wdrożyć natychmiast, aby osiągnąć zakładaną dominację na rynku do końca 2026 roku.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                
+                <!-- KPI Dashboard -->
+                <div class="lg:col-span-1 space-y-4">
+                    <h3 class="text-xl font-bold text-slate-800 mb-4">Co Mierzyć? (KPI)</h3>
+                    
+                    <div class="bg-white p-4 rounded-xl border-l-4 border-indigo-500 shadow-sm">
+                        <div class="text-xs font-bold text-slate-500 uppercase">Koszt Pozyskania (CAC) - B2C</div>
+                        <div class="text-2xl font-bold text-slate-800 mt-1">Spadek o 15%</div>
+                        <p class="text-xs text-slate-500 mt-2">Dzięki konfiguratorowi 3D i lepszej konwersji ze strony organicznej WWW.</p>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border-l-4 border-emerald-500 shadow-sm">
+                        <div class="text-xs font-bold text-slate-500 uppercase">Wysłane "Sample Boxy"</div>
+                        <div class="text-2xl font-bold text-slate-800 mt-1">Cel: 50 / miesiąc</div>
+                        <p class="text-xs text-slate-500 mt-2">Wskaźnik wiodący dla przyszłej sprzedaży (wysoka konwersja po dotknięciu produktu).</p>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border-l-4 border-amber-500 shadow-sm">
+                        <div class="text-xs font-bold text-slate-500 uppercase">Realizacje B2B (Referencyjne)</div>
+                        <div class="text-2xl font-bold text-slate-800 mt-1">Cel: 12 w 2026</div>
+                        <p class="text-xs text-slate-500 mt-2">Przynajmniej jeden duży publiczny orlik miesięcznie jako "wizytówka" do dalszej sprzedaży.</p>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border-l-4 border-purple-500 shadow-sm mt-4">
+                        <div class="text-xs font-bold text-slate-500 uppercase">Czas reakcji na Leada (SLA)</div>
+                        <div class="text-2xl font-bold text-slate-800 mt-1">< 5 minut</div>
+                        <p class="text-xs text-slate-500 mt-2">Osiągnięty w 100% dzięki wdrożeniu natychmiastowych automatyzacji opartych na zdarzeniach webowych (n8n).</p>
+                    </div>
+                </div>
+
+                <!-- Roadmapa -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                    <h3 class="text-xl font-bold text-slate-800 mb-6">Proponowana Roadmapa Wdrożeniowa (2026)</h3>
+                    
+                    <div class="timeline-container">
+                        <!-- Q1 -->
+                        <div class="relative mb-8">
+                            <div class="timeline-dot"></div>
+                            <h4 class="text-lg font-bold text-slate-800">Q1 2026: Cyfryzacja i Automatyzacja Bazowa</h4>
+                            <ul class="text-sm text-slate-600 mt-2 list-disc pl-4 space-y-1">
+                                <li>Wdrożenie środowiska <b>n8n</b> łączącego stronę WWW, system mailingowy i docelowy CRM.</li>
+                                <li>Uruchomienie automatycznego "Scrapera Przetargów" (n8n + AI) do pozyskiwania leadów B2B.</li>
+                                <li>Budowa bazy wiedzy Flexicourt i uruchomienie bota AI (Customer Support na www).</li>
+                                <li>Przygotowanie procesu logistycznego dla zautomatyzowanych "Sample Boxów".</li>
+                            </ul>
+                        </div>
+                        <!-- Q2 -->
+                        <div class="relative mb-8">
+                            <div class="timeline-dot bg-amber-500 shadow-[0_0_0_2px_#f59e0b] border-white"></div>
+                            <h4 class="text-lg font-bold text-slate-800">Q2 2026: Ofensywa Social Media (Sezon B2C)</h4>
+                            <ul class="text-sm text-slate-600 mt-2 list-disc pl-4 space-y-1">
+                                <li>Uruchomienie kampanii Facebook/Instagram/TikTok z motywem "Boisko w Weekend".</li>
+                                <li>Współpraca z mikro-influencerami (np. trenerzy koszykówki, promotorzy aktywności dzieci).</li>
+                                <li>Wprowadzenie płatności ratalnych (raty 0%) na stronie.</li>
+                            </ul>
+                        </div>
+                        <!-- Q3 -->
+                        <div class="relative mb-8">
+                            <div class="timeline-dot bg-blue-500 shadow-[0_0_0_2px_#3b82f6] border-white"></div>
+                            <h4 class="text-lg font-bold text-slate-800">Q3 2026: Skalowanie i Realizacje Publiczne</h4>
+                            <ul class="text-sm text-slate-600 mt-2 list-disc pl-4 space-y-1">
+                                <li>Obsługa i montaż wygranych przetargów samorządowych.</li>
+                                <li>Zbieranie portfolio: nagrywanie filmów drone'ami z realizacji (Case Studies).</li>
+                                <li>Zatowarowanie magazynu na "Drugi Szczyt" (wrzesień/powrót do szkoły).</li>
+                            </ul>
+                        </div>
+                        <!-- Q4 -->
+                        <div class="relative">
+                            <div class="timeline-dot bg-indigo-500 shadow-[0_0_0_2px_#6366f1] border-white"></div>
+                            <h4 class="text-lg font-bold text-slate-800">Q4 2026: Retencja i Budżety Końcoworoczne</h4>
+                            <ul class="text-sm text-slate-600 mt-2 list-disc pl-4 space-y-1">
+                                <li>Targetowanie instytucji z "resztkami budżetowymi" do wydania do końca roku (sprzedaż wewnętrznych nawierzchni do hal sportowych).</li>
+                                <li>Badanie satysfakcji (NPS) dotychczasowych klientów i zbieranie recenzji Google.</li>
+                                <li>Rewizja strategii na rok 2027 na bazie zebranych danych analitycznych z nowej strony www.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="bg-gradient-to-r from-slate-800 to-slate-900 text-white p-8 rounded-xl mt-6 text-center shadow-lg">
+                <h3 class="text-2xl font-bold text-emerald-400 mb-3">Podsumowanie Główne & Hiperautomatyzacja</h3>
+                <p class="text-slate-300 max-w-3xl mx-auto">
+                    Rynek jest w fazie przejściowej. Aby Flexicourt odniósł sukces, musi przestać być tylko "sprzedawcą płytek", a stać się <b>"Dostawcą nowoczesnej infrastruktury sportowej i stylu życia"</b>. Kombinacja fizycznego samplowania (Sample Box), cyfrowej wizualizacji (Kreator) oraz twardych argumentów ekonomicznych wygeneruje przewagę. Jednak to <b>technologia w tle (n8n i AI)</b> będzie kluczem do gwałtownego skalowania firmy bez drastycznego zwiększania kosztów zatrudnienia. Automatyczny scouting przetargów zasilany przez AI i natychmiastowa, 24-godzinna obsługa leada B2C stworzą efektywną machinę sprzedażową.
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-6 text-center text-sm mt-auto border-t border-slate-800">
+        <p>Wygenerowano dla Flexicourt.pl | Raport Strategiczny na rok 2026 | Informacje Poufne</p>
+    </footer>
+
+    <!-- Modal ustawień klucza API -->
+    <div id="api-modal" class="fixed inset-0 bg-slate-900 bg-opacity-60 z-50 hidden flex items-center justify-center fade-in backdrop-blur-sm px-4">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-auto border border-slate-200">
+            <h3 class="text-xl font-bold text-slate-800 mb-2">Konfiguracja AI (Gemini API)</h3>
+            <p class="text-sm text-slate-600 mb-4">Aby w pełni korzystać z narzędzi AI na własnym komputerze, wklej poniżej swój darmowy klucz API Google Gemini. Zostanie on zapisany lokalnie, bezpiecznie w Twojej przeglądarce.</p>
+            <input type="password" id="api-key-input" placeholder="Wklej klucz zaczynający się od AIzaSy..." class="w-full p-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-4 font-mono text-sm">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-xs text-blue-600 hover:underline">Zdobądź klucz tutaj ↗</a>
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <button onclick="closeApiModal()" class="flex-1 sm:flex-none px-4 py-2 text-slate-600 hover:text-slate-800 text-sm font-medium transition-colors border sm:border-none rounded-lg border-slate-200">Anuluj</button>
+                    <button onclick="saveApiKey()" class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm">Zapisz</button>
+                </div>
+            </div>
+            <div id="api-save-msg" class="text-sm text-emerald-600 font-medium mt-4 hidden text-center bg-emerald-50 p-2 rounded">✅ Klucz API zapisany pomyślnie!</div>
+        </div>
+    </div>
+
+    <script>
+        // State variables
+        let chartsRendered = {
+            rynek: false,
+            konkurencja: false,
+            strategia: false
+        };
+        let charts = {};
+
+        // Data Storage
+        const appData = {
+            marketShare: {
+                labels: ['Flexicourt.pl (Potencjał)', 'Marki Premium', 'Tani Import Azja', 'Inni/Tradycyjni'],
+                data: [18, 22, 40, 20]
+            },
+            radarComparison: {
+                labels: ['Konkurencyjność Cenowa', 'Jakość (UV/Mrozoodporność)', 'Dostępność z Magazynu', 'Łatwość samodzielnego montażu', 'Siła Marki / Atesty'],
+                datasets: [
+                    {
+                        label: 'Flexicourt.pl (Optymalnie)',
+                        data: [7, 9, 10, 9, 6],
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)', // emerald-500
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        pointBackgroundColor: 'rgba(16, 185, 129, 1)'
+                    },
+                    {
+                        label: 'Globalne Premium',
+                        data: [2, 10, 3, 5, 10],
+                        backgroundColor: 'rgba(99, 102, 241, 0.2)', // indigo-500
+                        borderColor: 'rgba(99, 102, 241, 1)',
+                        pointBackgroundColor: 'rgba(99, 102, 241, 1)'
+                    },
+                    {
+                        label: 'Tani Import',
+                        data: [10, 3, 6, 7, 2],
+                        backgroundColor: 'rgba(239, 68, 68, 0.2)', // red-500
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        pointBackgroundColor: 'rgba(239, 68, 68, 1)'
+                    }
+                ]
+            },
+            strategyGoals: {
+                labels: ['2024 (Baza)', '2025 (Budowa CX)', '2026 (Skalowanie)'],
+                datasets: [
+                    {
+                        label: 'Przychody B2C (Ogrody)',
+                        data: [100, 180, 280],
+                        backgroundColor: 'rgba(16, 185, 129, 0.85)'
+                    },
+                    {
+                        label: 'Przychody B2B (Instytucje)',
+                        data: [50, 90, 250],
+                        backgroundColor: 'rgba(245, 158, 11, 0.85)'
+                    }
+                ]
+            }
+        };
+
+        // Navigation & Logic
+        function switchTab(tabId) {
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'border-emerald-600');
+            });
+            document.getElementById('btn-' + tabId).classList.add('active');
+
+            // Update sections
+            document.querySelectorAll('main > section').forEach(sec => {
+                sec.classList.add('hidden');
+                sec.classList.remove('block');
+            });
+            const targetSection = document.getElementById('tab-' + tabId);
+            targetSection.classList.remove('hidden');
+            targetSection.classList.add('block');
+
+            // Render charts dynamically when section becomes visible
+            if (tabId === 'rynek' && !chartsRendered.rynek) {
+                renderMarketChart();
+                chartsRendered.rynek = true;
+            } else if (tabId === 'konkurencja' && !chartsRendered.konkurencja) {
+                renderRadarChart();
+                chartsRendered.konkurencja = true;
+            } else if (tabId === 'strategia' && !chartsRendered.strategia) {
+                renderStrategyChart();
+                chartsRendered.strategia = true;
+            }
+        }
+
+        // Chart Rendering Functions
+        Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+        Chart.defaults.color = '#64748b';
+
+        function renderMarketChart() {
+            const ctx = document.getElementById('marketChart').getContext('2d');
+            charts.market = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: appData.marketShare.labels,
+                    datasets: [{
+                        data: appData.marketShare.data,
+                        backgroundColor: ['#10b981', '#6366f1', '#ef4444', '#cbd5e1'],
+                        borderWidth: 0,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) { return ' ' + context.label + ': ~' + context.raw + '%'; }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        function renderRadarChart() {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            charts.radar = new Chart(ctx, {
+                type: 'radar',
+                data: appData.radarComparison,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.05)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                            pointLabels: { font: { size: 11, weight: '600' }, color: '#475569' },
+                            ticks: { display: false, max: 10, min: 0 }
+                        }
+                    },
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }
+                }
+            });
+        }
+
+        function renderStrategyChart() {
+            const ctx = document.getElementById('strategyChart').getContext('2d');
+            charts.strategy = new Chart(ctx, {
+                type: 'bar',
+                data: appData.strategyGoals,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true, grid: { display: false } },
+                        y: { stacked: true, title: { display: true, text: 'Względny Wzrost Sprzedaży (Indeks)' }, border: { dash: [4, 4] } }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            mode: 'index',
+                            callbacks: {
+                                label: function(context) { return context.dataset.label + ': ' + context.raw + ' pkt.'; }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- GEMINI AI INTEGRATION ---
+        
+        // Funkcje obsługi panelu API Key
+        function getActiveApiKey() {
+            return localStorage.getItem('flexicourt_gemini_api_key') || "";
+        }
+
+        function openApiModal() {
+            document.getElementById('api-key-input').value = getActiveApiKey();
+            document.getElementById('api-modal').classList.remove('hidden');
+            document.getElementById('api-save-msg').classList.add('hidden');
+        }
+
+        function closeApiModal() {
+            document.getElementById('api-modal').classList.add('hidden');
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('api-key-input').value.trim();
+            if (key) {
+                localStorage.setItem('flexicourt_gemini_api_key', key);
+            } else {
+                localStorage.removeItem('flexicourt_gemini_api_key');
+            }
+            document.getElementById('api-save-msg').classList.remove('hidden');
+            setTimeout(closeApiModal, 1500);
+        }
+
+        // Funkcja uderzająca do Gemini z mechanizmem Retry
+        async function fetchGeminiWithRetry(prompt) {
+            const activeKey = getActiveApiKey();
+            if (!activeKey) {
+                return "⚠️ Brak klucza API. Kliknij przycisk '🔑 Klucz API' w prawym górnym rogu strony, aby go skonfigurować.";
+            }
+
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }]
+            };
+
+            const delays = [1000, 2000, 4000, 8000, 16000];
+            let lastError = null;
+
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) {
+                        if(response.status === 400) throw new Error(`Błąd HTTP 400: Sprawdź czy Twój klucz API jest poprawny.`);
+                        throw new Error(`Błąd HTTP: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    return data.candidates?.[0]?.content?.parts?.[0]?.text || "Brak tekstu w odpowiedzi.";
+                } catch (error) {
+                    lastError = error;
+                    if (i < 4) await new Promise(resolve => setTimeout(resolve, delays[i]));
+                }
+            }
+            return `Wystąpił błąd podczas łączenia z AI: ${lastError?.message || "Nieznany błąd"}`;
+        }
+
+        // 1. Obsługa Obiekcji
+        async function handleObjection() {
+            const input = document.getElementById('objection-input').value;
+            const outputDiv = document.getElementById('objection-output');
+            
+            if(!input.trim()) return;
+            
+            outputDiv.classList.remove('hidden');
+            outputDiv.innerHTML = '<div class="flex items-center gap-2"><span class="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></span> <span class="text-indigo-600">✨ AI analizuje obiekcję i szuka argumentów Flexicourt...</span></div>';
+            
+            const prompt = `Jako ekspert sprzedaży Flexicourt.pl (nawierzchnie polipropylenowe premium z magazynem w Polsce), odpowiedz na poniższą obiekcję klienta. Bądź zwięzły, profesjonalny i wysoce perswazyjny. Użyj naszych twardych przewag (szybkość dostawy z PL, lokalny magazyn, prawdziwa 15-letnia gwarancja, system klikowy "zrób to sam", bezpieczniejsze niż chiński plastik, wielokrotnie tańsze w utrzymaniu niż wylewki poliuretanowe). 
+            
+            Obiekcja klienta: "${input}"`;
+            
+            const response = await fetchGeminiWithRetry(prompt);
+            outputDiv.innerText = response;
+        }
+
+        // 2. Podsumowanie Spotkania
+        async function summarizeMeeting() {
+            const notes = document.getElementById('meeting-notes').value;
+            const outputDiv = document.getElementById('meeting-output');
+            
+            if(!notes.trim()) return;
+            
+            outputDiv.classList.remove('hidden');
+            outputDiv.innerHTML = '<div class="flex items-center gap-2"><span class="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-600"></span> <span class="text-emerald-600">✨ AI analizuje notatki i tworzy podsumowanie...</span></div>';
+            
+            const prompt = `Jako profesjonalny asystent sprzedaży Flexicourt.pl (nowoczesne nawierzchnie polipropylenowe), uporządkuj poniższe luźne notatki z rozmowy z klientem. 
+            
+            Przygotuj odpowiedź w 3 krótkich sekcjach:
+            1. 🎯 Profil klienta i jego potrzeby (uporządkowane punkty).
+            2. 🛡️ Nasze argumenty (jakie zalety Flexicourt najlepiej odpowiadają na obawy tego konkretnego klienta).
+            3. ✉️ Gotowy draft maila (Follow-up) - profesjonalny e-mail do klienta dziękujący za spotkanie, podsumowujący ustalenia i płynnie wzywający do kolejnego kroku.
+            
+            Notatki ze spotkania: "${notes}"`;
+            
+            const response = await fetchGeminiWithRetry(prompt);
+            outputDiv.innerText = response;
+        }
+
+        // 3. Generator Emaili B2B
+        async function generateEmail() {
+            const role = document.getElementById('target-role').value;
+            const pain = document.getElementById('target-pain').value;
+            const outputDiv = document.getElementById('email-output');
+            
+            if(!role.trim() || !pain.trim()) return;
+            
+            outputDiv.classList.remove('hidden');
+            outputDiv.innerHTML = '<div class="flex items-center gap-2"><span class="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-500"></span> <span class="text-amber-600">✨ AI pisze spersonalizowanego cold maila...</span></div>';
+            
+            const prompt = `Napisz wysoce skuteczny, krótki cold e-mail B2B do osoby na stanowisku: "${role}". Główny problem tej osoby do rozwiązania to: "${pain}". 
+            
+            Cel wiadomości: Zaintrygowanie, zaproponowanie darmowego audytu zniszczonego boiska/orlika i przedstawienie modułowych nawierzchni polipropylenowych "Flexicourt" jako nowoczesnej, szybkiej (montaż w 48h) i ekologicznej alternatywy dla wylewek poliuretanowych. 
+            Ton: Profesjonalny, zwięzły, oparty na korzyściach finansowych i czasowych. Żadnych zbędnych, długich wstępów. Dodaj wyraźne Call to Action (CTA) na końcu. Zostaw puste miejsce [Imię] do personalizacji.`;
+            
+            const response = await fetchGeminiWithRetry(prompt);
+            outputDiv.innerText = response;
+        }
+
+        // 4. Generator Social Media B2C
+        async function generateSocialPost() {
+            const audience = document.getElementById('social-audience').value;
+            const benefit = document.getElementById('social-benefit').value;
+            const outputDiv = document.getElementById('social-output');
+            
+            if(!audience.trim() || !benefit.trim()) return;
+            
+            outputDiv.classList.remove('hidden');
+            outputDiv.innerHTML = '<div class="flex items-center gap-2"><span class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></span> <span class="text-blue-600">✨ AI pisze angażujący tekst marketingowy...</span></div>';
+            
+            const prompt = `Jako ekspert social media dla Flexicourt.pl (innowacyjne, modułowe boiska sportowe na podwórka przydomowe), napisz angażujący post na Facebooka lub Instagrama.
+            
+            Grupa docelowa czytelników: "${audience}"
+            Główna korzyść / powód zakupu, na który kładziemy nacisk: "${benefit}"
+            
+            Wytyczne: 
+            - Post ma być entuzjastyczny, lifestylowy i zachęcać do wyobrażenia sobie własnego boiska.
+            - Używaj spacji, akapitów i dopasowanych ikon (emoji).
+            - Zakończ wyraźnym Call to Action (Wezwaniem do Działania), np. zaproszeniem do wejścia na stronę po darmową wycenę.
+            - Na samym końcu wypisz 5-7 popularnych hashtagów związane z koszykówką/sportem w domu (#flexicourt #boisko #koszykowka itp.).`;
+            
+            const response = await fetchGeminiWithRetry(prompt);
+            outputDiv.innerText = response;
+        }
+
+        // Init aplikacji
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMarketChart();
+            chartsRendered.rynek = true;
+        });
+
+    </script>
+</body>
+</html>
