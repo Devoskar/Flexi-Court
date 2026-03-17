@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Chosen Palette: Slate & Emerald with Amber & Indigo accents -->
-    <!-- Application Structure Plan: Aplikacja ze zintegrowanym modelem gemini-1.5-flash, obsługa klucza w localStorage oraz zaawansowaną obsługą błędów (Failed to fetch). -->
+    <!-- Application Structure Plan: Aplikacja ze zintegrowanym API OpenRouter, obsługą klucza w localStorage oraz pełnym zestawem narzędzi AI (LLM) dla handlowców. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         .chart-container {
@@ -168,6 +168,7 @@
 
             <h3 class="text-2xl font-bold text-slate-800 mb-4">Rekomendowane Taktyki Zwalczania:</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Competitor 1 -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-indigo-500 flex flex-col h-full card-hover">
                     <h4 class="text-xl font-bold text-slate-800">Marki Globalne / Premium</h4>
                     <p class="text-xs text-slate-500 uppercase tracking-wide mb-3">Np. Sport Court, Bergo</p>
@@ -181,6 +182,7 @@
                     </div>
                 </div>
                 
+                <!-- Competitor 2 -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-red-500 flex flex-col h-full card-hover">
                     <h4 class="text-xl font-bold text-slate-800">Tani Import "No-name"</h4>
                     <p class="text-xs text-slate-500 uppercase tracking-wide mb-3">Importerzy z Allegro, Alibaba</p>
@@ -194,6 +196,7 @@
                     </div>
                 </div>
 
+                <!-- Competitor 3 -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-amber-500 flex flex-col h-full card-hover">
                     <h4 class="text-xl font-bold text-slate-800">Poliuretan (Wylewki)</h4>
                     <p class="text-xs text-slate-500 uppercase tracking-wide mb-3">Tradycyjne firmy budowlane</p>
@@ -458,20 +461,20 @@
         <p>Wygenerowano dla Flexicourt.pl | Raport Strategiczny na rok 2026 | Informacje Poufne</p>
     </footer>
 
-    <!-- Modal ustawień klucza API -->
+    <!-- Modal ustawień klucza API (OpenRouter) -->
     <div id="api-modal" class="fixed inset-0 bg-slate-900 bg-opacity-60 z-50 hidden flex items-center justify-center fade-in backdrop-blur-sm px-4">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-auto border border-slate-200">
-            <h3 class="text-xl font-bold text-slate-800 mb-2">Konfiguracja AI (Gemini API)</h3>
-            <p class="text-sm text-slate-600 mb-4">Aby w pełni korzystać z narzędzi AI na własnym komputerze, wklej poniżej swój darmowy klucz API Google Gemini. Zostanie on zapisany lokalnie, bezpiecznie w Twojej przeglądarce.</p>
-            <input type="password" id="api-key-input" placeholder="Wklej klucz zaczynający się od AIzaSy..." class="w-full p-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-4 font-mono text-sm">
+            <h3 class="text-xl font-bold text-slate-800 mb-2">Konfiguracja AI (OpenRouter API)</h3>
+            <p class="text-sm text-slate-600 mb-4">Aby w pełni korzystać z narzędzi AI, wklej poniżej swój klucz API z platformy OpenRouter. Zostanie on zapisany bezpiecznie w pamięci Twojej przeglądarki.</p>
+            <input type="password" id="api-key-input" placeholder="Wklej klucz (np. sk-or-v1-...)" class="w-full p-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-4 font-mono text-sm">
             <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-xs text-blue-600 hover:underline">Zdobądź klucz tutaj ↗</a>
+                <a href="https://openrouter.ai/keys" target="_blank" class="text-xs text-blue-600 hover:underline">Zdobądź klucz na OpenRouter.ai ↗</a>
                 <div class="flex gap-2 w-full sm:w-auto">
                     <button onclick="closeApiModal()" class="flex-1 sm:flex-none px-4 py-2 text-slate-600 hover:text-slate-800 text-sm font-medium transition-colors border sm:border-none rounded-lg border-slate-200">Anuluj</button>
                     <button onclick="saveApiKey()" class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm">Zapisz</button>
                 </div>
             </div>
-            <div id="api-save-msg" class="text-sm text-emerald-600 font-medium mt-4 hidden text-center bg-emerald-50 p-2 rounded">✅ Klucz API zapisany pomyślnie!</div>
+            <div id="api-save-msg" class="text-sm text-emerald-600 font-medium mt-4 hidden text-center bg-emerald-50 p-2 rounded">✅ Klucz API OpenRouter zapisany!</div>
         </div>
     </div>
 
@@ -639,10 +642,10 @@
             });
         }
 
-        // --- GEMINI AI INTEGRATION (FIXED FETCH & CORS HANDLING) ---
+        // --- OPENROUTER AI INTEGRATION ---
         
         function getActiveApiKey() {
-            return localStorage.getItem('flexicourt_gemini_api_key') || "";
+            return localStorage.getItem('flexicourt_openrouter_api_key') || "";
         }
 
         function openApiModal() {
@@ -658,25 +661,27 @@
         function saveApiKey() {
             const key = document.getElementById('api-key-input').value.trim();
             if (key) {
-                localStorage.setItem('flexicourt_gemini_api_key', key);
+                localStorage.setItem('flexicourt_openrouter_api_key', key);
             } else {
-                localStorage.removeItem('flexicourt_gemini_api_key');
+                localStorage.removeItem('flexicourt_openrouter_api_key');
             }
             document.getElementById('api-save-msg').classList.remove('hidden');
             setTimeout(closeApiModal, 1500);
         }
 
-        // Ulepszona funkcja uderzająca do Google API z dokładnym łapaniem błędów "Failed to fetch"
-        async function fetchGeminiWithRetry(prompt) {
+        // Funkcja uderzająca do OpenRouter API
+        async function fetchOpenRouterWithRetry(prompt) {
             const activeKey = getActiveApiKey();
             if (!activeKey) {
-                return "⚠️ Brak klucza API. Kliknij przycisk '🔑 Klucz API' w prawym górnym rogu strony, aby go skonfigurować.";
+                return "⚠️ Brak klucza API. Kliknij przycisk '🔑 Klucz API' w prawym górnym rogu strony, aby skonfigurować OpenRouter.";
             }
 
-            // Używamy stabilnego, ogólnodostępnego modelu gemini-1.5-flash
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeKey}`;
+            const url = `https://openrouter.ai/api/v1/chat/completions`;
             const payload = {
-                contents: [{ parts: [{ text: prompt }] }]
+                model: "google/gemini-1.5-flash", // Domyślny model OpenRouter. Można zmienić np. na "openai/gpt-4o-mini"
+                messages: [
+                    { role: "user", content: prompt }
+                ]
             };
 
             const delays = [1000, 2000, 4000, 8000, 16000];
@@ -686,31 +691,34 @@
                 try {
                     const response = await fetch(url, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${activeKey}`,
+                            'HTTP-Referer': window.location.href,
+                            'X-Title': 'Flexicourt AI App'
+                        },
                         body: JSON.stringify(payload)
                     });
                     
                     if (!response.ok) {
                         const errorData = await response.json().catch(() => ({}));
-                        console.error("Szczegóły błędu API:", errorData);
+                        console.error("Szczegóły błędu OpenRouter:", errorData);
                         
-                        if(response.status === 400) throw new Error(`Błąd HTTP 400 (Bad Request). Sprawdź, czy klucz API nie ma na końcu spacji.`);
-                        if(response.status === 403) throw new Error(`Błąd HTTP 403 (Forbidden). Klucz API jest nieprawidłowy lub nie ma dostępu.`);
-                        if(response.status === 404) throw new Error(`Błąd HTTP 404 (Not Found). Model AI jest niedostępny dla tego klucza.`);
+                        if(response.status === 401) throw new Error(`Błąd HTTP 401: Twój klucz API OpenRouter jest nieprawidłowy.`);
+                        if(response.status === 402) throw new Error(`Błąd HTTP 402: Brak środków na Twoim koncie OpenRouter.`);
                         
                         throw new Error(`Błąd serwera HTTP ${response.status}: ${errorData?.error?.message || "Nieznany problem"}`);
                     }
                     
                     const data = await response.json();
-                    return data.candidates?.[0]?.content?.parts?.[0]?.text || "Brak tekstu w odpowiedzi.";
+                    return data.choices?.[0]?.message?.content || "Brak tekstu w odpowiedzi.";
                     
                 } catch (error) {
                     lastError = error;
                     console.error("Próba połączenia zakończona błędem:", error);
                     
-                    // Jeśli błąd to "Failed to fetch", oznacza to zablokowanie na poziomie przeglądarki klienta
                     if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
-                        throw new Error("🚨 Błąd sieciowy (Failed to fetch). Żądanie nie opuściło Twojej przeglądarki.\n\nNajczęstsze przyczyny, jeśli używasz pliku lokalnego:\n1. Masz włączonego AdBlocka / uBlocka, który blokuje zapytania do obcych API (Wyłącz go na moment).\n2. Używasz przeglądarki Brave z włączonymi 'Tarczami' (Wyłącz Tarcze dla tego pliku).\n3. Twój antywirus lub sieć firmowa blokuje usługi Google.");
+                        throw new Error("🚨 Błąd sieciowy (Failed to fetch). Żądanie zostało zablokowane. Wyłącz AdBlocka lub 'Tarcze' w przeglądarce.");
                     }
 
                     if (i < 4) await new Promise(resolve => setTimeout(resolve, delays[i]));
@@ -727,13 +735,12 @@
             if(!input.trim()) return;
             
             outputDiv.classList.remove('hidden');
-            outputDiv.innerHTML = '<div class="flex items-center gap-2"><span class="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></span> <span class="text-indigo-600">✨ AI analizuje obiekcję i szuka argumentów Flexicourt...</span></div>';
+            outputDiv.innerHTML = '<div class="flex items-center gap-2"><span class="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></span> <span class="text-indigo-600">✨ AI analizuje obiekcję i szuka argumentów...</span></div>';
             
             try {
-                const prompt = `Jako ekspert sprzedaży Flexicourt.pl (nawierzchnie polipropylenowe premium z magazynem w Polsce), odpowiedz na poniższą obiekcję klienta. Bądź zwięzły, profesjonalny i wysoce perswazyjny. Użyj naszych twardych przewag (szybkość dostawy z PL, lokalny magazyn, prawdziwa 15-letnia gwarancja, system klikowy "zrób to sam", bezpieczniejsze niż chiński plastik, wielokrotnie tańsze w utrzymaniu niż wylewki poliuretanowe). 
-                Obiekcja klienta: "${input}"`;
+                const prompt = `Jako ekspert sprzedaży Flexicourt.pl (nawierzchnie polipropylenowe premium z magazynem w Polsce), odpowiedz na poniższą obiekcję klienta. Bądź zwięzły, profesjonalny i wysoce perswazyjny. Użyj naszych twardych przewag (szybkość dostawy z PL, lokalny magazyn, prawdziwa 15-letnia gwarancja, system klikowy "zrób to sam", bezpieczniejsze niż chiński plastik, wielokrotnie tańsze w utrzymaniu niż wylewki poliuretanowe). \nObiekcja klienta: "${input}"`;
                 
-                const response = await fetchGeminiWithRetry(prompt);
+                const response = await fetchOpenRouterWithRetry(prompt);
                 outputDiv.innerText = response;
             } catch(e) {
                 outputDiv.innerText = e.message;
@@ -751,14 +758,9 @@
             outputDiv.innerHTML = '<div class="flex items-center gap-2"><span class="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-600"></span> <span class="text-emerald-600">✨ AI analizuje notatki i tworzy podsumowanie...</span></div>';
             
             try {
-                const prompt = `Jako profesjonalny asystent sprzedaży Flexicourt.pl (nowoczesne nawierzchnie polipropylenowe), uporządkuj poniższe luźne notatki z rozmowy z klientem. 
-                Przygotuj odpowiedź w 3 krótkich sekcjach:
-                1. 🎯 Profil klienta i jego potrzeby (uporządkowane punkty).
-                2. 🛡️ Nasze argumenty (jakie zalety Flexicourt najlepiej odpowiadają na obawy tego konkretnego klienta).
-                3. ✉️ Gotowy draft maila (Follow-up) - profesjonalny e-mail do klienta dziękujący za spotkanie, podsumowujący ustalenia i płynnie wzywający do kolejnego kroku.
-                Notatki ze spotkania: "${notes}"`;
+                const prompt = `Jako profesjonalny asystent sprzedaży Flexicourt.pl (nowoczesne nawierzchnie polipropylenowe), uporządkuj poniższe luźne notatki z rozmowy z klientem. \nPrzygotuj odpowiedź w 3 krótkich sekcjach:\n1. 🎯 Profil klienta i jego potrzeby (uporządkowane punkty).\n2. 🛡️ Nasze argumenty (jakie zalety Flexicourt najlepiej odpowiadają na obawy tego konkretnego klienta).\n3. ✉️ Gotowy draft maila (Follow-up) - profesjonalny e-mail do klienta dziękujący za spotkanie, podsumowujący ustalenia i płynnie wzywający do kolejnego kroku.\nNotatki ze spotkania: "${notes}"`;
                 
-                const response = await fetchGeminiWithRetry(prompt);
+                const response = await fetchOpenRouterWithRetry(prompt);
                 outputDiv.innerText = response;
             } catch(e) {
                 outputDiv.innerText = e.message;
@@ -777,11 +779,9 @@
             outputDiv.innerHTML = '<div class="flex items-center gap-2"><span class="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-500"></span> <span class="text-amber-600">✨ AI pisze spersonalizowanego cold maila...</span></div>';
             
             try {
-                const prompt = `Napisz wysoce skuteczny, krótki cold e-mail B2B do osoby na stanowisku: "${role}". Główny problem tej osoby do rozwiązania to: "${pain}". 
-                Cel wiadomości: Zaintrygowanie, zaproponowanie darmowego audytu zniszczonego boiska/orlika i przedstawienie modułowych nawierzchni polipropylenowych "Flexicourt" jako nowoczesnej, szybkiej (montaż w 48h) i ekologicznej alternatywy dla wylewek poliuretanowych. 
-                Ton: Profesjonalny, zwięzły, oparty na korzyściach finansowych i czasowych. Żadnych zbędnych, długich wstępów. Dodaj wyraźne Call to Action (CTA) na końcu. Zostaw puste miejsce [Imię] do personalizacji.`;
+                const prompt = `Napisz wysoce skuteczny, krótki cold e-mail B2B do osoby na stanowisku: "${role}". Główny problem tej osoby do rozwiązania to: "${pain}". \nCel wiadomości: Zaintrygowanie, zaproponowanie darmowego audytu zniszczonego boiska/orlika i przedstawienie modułowych nawierzchni polipropylenowych "Flexicourt" jako nowoczesnej, szybkiej (montaż w 48h) i ekologicznej alternatywy dla wylewek poliuretanowych. \nTon: Profesjonalny, zwięzły, oparty na korzyściach finansowych i czasowych. Żadnych zbędnych, długich wstępów. Dodaj wyraźne Call to Action (CTA) na końcu. Zostaw puste miejsce [Imię] do personalizacji.`;
                 
-                const response = await fetchGeminiWithRetry(prompt);
+                const response = await fetchOpenRouterWithRetry(prompt);
                 outputDiv.innerText = response;
             } catch(e) {
                 outputDiv.innerText = e.message;
@@ -800,16 +800,9 @@
             outputDiv.innerHTML = '<div class="flex items-center gap-2"><span class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></span> <span class="text-blue-600">✨ AI pisze angażujący tekst marketingowy...</span></div>';
             
             try {
-                const prompt = `Jako ekspert social media dla Flexicourt.pl (innowacyjne, modułowe boiska sportowe na podwórka przydomowe), napisz angażujący post na Facebooka lub Instagrama.
-                Grupa docelowa czytelników: "${audience}"
-                Główna korzyść / powód zakupu, na który kładziemy nacisk: "${benefit}"
-                Wytyczne: 
-                - Post ma być entuzjastyczny, lifestylowy i zachęcać do wyobrażenia sobie własnego boiska.
-                - Używaj spacji, akapitów i dopasowanych ikon (emoji).
-                - Zakończ wyraźnym Call to Action (Wezwaniem do Działania), np. zaproszeniem do wejścia na stronę po darmową wycenę.
-                - Na samym końcu wypisz 5-7 popularnych hashtagów.`;
+                const prompt = `Jako ekspert social media dla Flexicourt.pl (innowacyjne, modułowe boiska sportowe na podwórka przydomowe), napisz angażujący post na Facebooka lub Instagrama.\nGrupa docelowa czytelników: "${audience}"\nGłówna korzyść / powód zakupu, na który kładziemy nacisk: "${benefit}"\nWytyczne: \n- Post ma być entuzjastyczny, lifestylowy i zachęcać do wyobrażenia sobie własnego boiska.\n- Używaj spacji, akapitów i dopasowanych ikon (emoji).\n- Zakończ wyraźnym Call to Action (Wezwaniem do Działania), np. zaproszeniem do wejścia na stronę po darmową wycenę.\n- Na samym końcu wypisz 5-7 popularnych hashtagów.`;
                 
-                const response = await fetchGeminiWithRetry(prompt);
+                const response = await fetchOpenRouterWithRetry(prompt);
                 outputDiv.innerText = response;
             } catch(e) {
                 outputDiv.innerText = e.message;
